@@ -39,7 +39,7 @@ regd_users.post("/login", (req,res) => {
     if (authenticatedUser(username,password)) {
       let accessToken = jwt.sign({
         data: password
-      }, 'access', { expiresIn: 60 * 60 });
+      }, 'access', { expiresIn: "2 days" });
   
       req.session.authorization = {
         accessToken,username
@@ -51,22 +51,23 @@ regd_users.post("/login", (req,res) => {
   });
 
 // Add a book review
-regd_users.put("/auth/review/:isbn", (req, res) => {
+regd_users.put("/review/:isbn", (req, res) => {
     const isbnToGet = req.params.isbn;
-    const review = req.params.review
-    const matchingBooks = [];
+    const review = req.params.review; 
+
     for (const isbn in books) {
-        const book = books[isbn];
         if (isbn === isbnToGet) {
-          matchingBooks.push(review)
-          book[reviews] = matchingBooks;
+            let book = books[isbn];
+            if (!book.reviews) {
+                book.reviews = []; // Create the reviews array if it doesn't exist
+            }
+            book.reviews.push(review); // Add the review to the book's reviews
+            return res.json({ message: 'Review added successfully' });
         }
-      }
-    res.json(matchingBooks)
-  
-  //Write your code here
+    }
 
-
+    // If the ISBN was not found, you may want to return an error message
+    return res.status(404).json({ message: 'Book not found' });
 });
 
 module.exports.authenticated = regd_users;
